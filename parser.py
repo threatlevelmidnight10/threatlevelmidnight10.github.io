@@ -22,20 +22,12 @@ def classify_link(link):
             
     return 'misc'
 
-def extract_tweet_info(url):
-    """Extract username and tweet ID from URL."""
-    match = re.search(r'(?:twitter\.com|x\.com)/([^/]+)/status/(\d+)', url)
+def extract_tweet_id(url):
+    """Extract tweet ID from URL."""
+    match = re.search(r'/status/(\d+)', url)
     if match:
-        username = match.group(1)
-        tweet_id = match.group(2)
-        if username != 'i':
-            return username, tweet_id
-    
-    id_match = re.search(r'/status/(\d+)', url)
-    if id_match:
-        return None, id_match.group(1)
-    
-    return None, None
+        return match.group(1)
+    return None
 
 def generate_site():
     input_file = './cht_history/_chat180626.txt'
@@ -62,15 +54,16 @@ def generate_site():
     for link in unique_links:
         category = classify_link(link)
         if category == 'twitter':
-            twitter_links.append(link)
+            tweet_id = extract_tweet_id(link)
+            if tweet_id:  # Only include if we can extract the ID
+                twitter_links.append((link, tweet_id))
         elif category == 'tech':
             tech_links.append(link)
         else:
             if "whatsapp.com" not in link:
                 misc_links.append(link)
 
-    # Smaller pages = better loading performance
-    tweets_per_page = 10
+    tweets_per_page = 6  # Fewer per page for better loading
     total_tweet_pages = (len(twitter_links) + tweets_per_page - 1) // tweets_per_page
 
     md_content = [
@@ -88,48 +81,28 @@ def generate_site():
     if twitter_links:
         md_content.append("## X / Twitter")
         md_content.append("")
-        md_content.append(f'<p class="small-text">{len(twitter_links)} saved posts • Page <span id="current-page">1</span> of {total_tweet_pages}</p>')
+        md_content.append(f'<p class="small-text">{len(twitter_links)} posts • Page <span id="current-page">1</span> of {total_tweet_pages}</p>')
         md_content.append("")
         
-        # CSS for tweet grid with loading states
+        # CSS for tweet iframe grid
         md_content.append("""
 <style>
 .tweet-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 16px;
 }
-.tweet-container {
-  min-height: 200px;
-  background: #f8f9fa;
+.tweet-frame {
+  border: 1px solid #e1e8ed;
   border-radius: 12px;
-  position: relative;
   overflow: hidden;
+  background: #fff;
+  min-height: 250px;
 }
-.tweet-container.loading::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-.tweet-container.loading::after {
-  content: '𝕏 Loading...';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #999;
-  font-size: 14px;
-}
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-.tweet-container iframe,
-.tweet-container .twitter-tweet-rendered {
-  margin: 0 !important;
+.tweet-frame iframe {
+  width: 100%;
+  height: 350px;
+  border: none;
 }
 .page-nav { 
   margin: 30px 0; 
@@ -165,12 +138,17 @@ def generate_site():
 .tweet-page.active { 
   display: block; 
 }
+@media (max-width: 768px) {
+  .tweet-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
 """)
         
         md_content.append('<div id="twitter-section">')
         
-        # Generate pages with tweet embeds
+        # Generate pages with tweet iframes
         for page_num in range(total_tweet_pages):
             start_idx = page_num * tweets_per_page
             end_idx = min(start_idx + tweets_per_page, len(twitter_links))
@@ -180,12 +158,11 @@ def generate_site():
             md_content.append(f'<div class="tweet-page{active}" data-page="{page_num}">')
             md_content.append('<div class="tweet-grid">')
             
-            for link in page_tweets:
-                # Wrap each tweet in a container with loading state
-                md_content.append(f'''<div class="tweet-container loading">
-<blockquote class="twitter-tweet" data-dnt="true" data-theme="light">
-<a href="{link}"></a>
-</blockquote>
+            for original_url, tweet_id in page_tweets:
+                # Use Twitter's embed iframe directly
+                iframe_url = f"https://platform.twitter.com/embed/Tweet.html?id={tweet_id}&theme=light"
+                md_content.append(f'''<div class="tweet-frame">
+<iframe src="{iframe_url}" loading="lazy" allowtransparency="true"></iframe>
 </div>''')
             
             md_content.append('</div>')
@@ -194,48 +171,18 @@ def generate_site():
         md_content.append('<div class="page-nav" id="page-nav"></div>')
         md_content.append('</div>')
         
-        # JavaScript: Twitter widget + Pagination + Lazy loading
+        # Pagination JS
         md_content.append(f"""
 <script>
-// Twitter widget loader
-window.twttr = (function(d, s, id) {{
-  var js, fjs = d.getElementsByTagName(s)[0], t = window.twttr || {{}};
-  if (d.getElementById(id)) return t;
-  js = d.createElement(s);
-  js.id = id;
-  js.src = "https://platform.twitter.com/widgets.js";
-  fjs.parentNode.insertBefore(js, fjs);
-  t._e = [];
-  t.ready = function(f) {{ t._e.push(f); }};
-  return t;
-}}(document, "script", "twitter-wjs"));
-
 (function() {{
   const totalPages = {total_tweet_pages};
   const pages = document.querySelectorAll('.tweet-page');
   const nav = document.getElementById('page-nav');
   const currentPageSpan = document.getElementById('current-page');
   
-  function loadTweets(container) {{
-    twttr.ready(function(twttr) {{
-      twttr.widgets.load(container);
-      // Remove loading state when tweets are rendered
-      twttr.events.bind('rendered', function(event) {{
-        const tweetContainer = event.target.closest('.tweet-container');
-        if (tweetContainer) {{
-          tweetContainer.classList.remove('loading');
-        }}
-      }});
-    }});
-  }}
-  
   function show(idx) {{
     pages.forEach((p, i) => {{
-      const isActive = i === idx;
-      p.classList.toggle('active', isActive);
-      if (isActive) {{
-        loadTweets(p);
-      }}
+      p.classList.toggle('active', i === idx);
     }});
     render(idx);
     currentPageSpan.textContent = idx + 1;
@@ -270,11 +217,7 @@ window.twttr = (function(d, s, id) {{
     nav.appendChild(next);
   }}
   
-  // Initial load
   render(0);
-  twttr.ready(function() {{
-    loadTweets(pages[0]);
-  }});
 }})();
 </script>
 """)
@@ -310,8 +253,8 @@ window.twttr = (function(d, s, id) {{
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write("\n".join(md_content))
     
-    print(f"Generated bookmarks with {len(unique_links)} links:")
-    print(f"  - Twitter: {len(twitter_links)} ({total_tweet_pages} pages of {tweets_per_page})")
+    print(f"Generated bookmarks with {len(unique_links)} total links:")
+    print(f"  - Twitter: {len(twitter_links)} ({total_tweet_pages} pages)")
     print(f"  - Tech: {len(tech_links)}")
     print(f"  - Misc: {len(misc_links)}")
 
