@@ -1,46 +1,113 @@
 import re
 import os
 
-LAZY_LOAD_SCRIPT = '''<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+# Client-side pagination script for Twitter section + Standard Twitter Widget
+PAGINATION_SCRIPT = '''
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 <script>
-// Lazy load Twitter embeds to fix the issue where only first few tweets render
 document.addEventListener('DOMContentLoaded', function() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const tweet = entry.target;
-        if (!tweet.dataset.loaded && window.twttr && window.twttr.widgets) {
-          window.twttr.widgets.load(tweet);
-          tweet.dataset.loaded = 'true';
+  const pageSize = 20;
+  const pages = document.querySelectorAll('.tweet-page');
+  const paginationContainer = document.getElementById('pagination-controls');
+  
+  if (pages.length > 1) {
+    let currentPage = 0;
+    
+    function showPage(index) {
+      pages.forEach((page, i) => {
+        if (i === index) {
+          page.classList.add('active');
+          // Trigger Twitter widget load for the new visible elements
+          if (window.twttr && window.twttr.widgets) {
+             window.twttr.widgets.load(page);
+          }
+        } else {
+          page.classList.remove('active');
         }
-        observer.unobserve(tweet);
-      }
-    });
-  }, { rootMargin: '200px' });
+      });
+      updateButtons(index);
+      currentPage = index;
+    }
 
-  // Wait for Twitter widgets to be ready
-  function observeTweets() {
-    document.querySelectorAll('blockquote.twitter-tweet').forEach(tweet => {
-      if (!tweet.dataset.loaded) {
-        observer.observe(tweet);
-      }
-    });
-  }
+    function updateButtons(index) {
+      paginationContainer.innerHTML = '';
+      
+      // Prev Button
+      const prevBtn = document.createElement('button');
+      prevBtn.innerText = '← Prev';
+      prevBtn.disabled = index === 0;
+      prevBtn.onclick = () => {
+         showPage(index - 1);
+         document.getElementById('twitter-section').scrollIntoView({behavior: 'smooth'});
+      };
+      paginationContainer.appendChild(prevBtn);
 
-  if (window.twttr && window.twttr.ready) {
-    window.twttr.ready(observeTweets);
-  } else {
-    // Retry after widgets.js loads
-    setTimeout(observeTweets, 2000);
+      // Page Numbers (Show window of 5 around current)
+      let start = Math.max(0, index - 2);
+      let end = Math.min(pages.length - 1, start + 4);
+      
+      if (end - start < 4) {
+        start = Math.max(0, end - 4);
+      }
+
+      for (let i = start; i <= end; i++) {
+        const btn = document.createElement('button');
+        btn.innerText = i + 1;
+        if (i === index) btn.classList.add('active');
+        btn.onclick = () => {
+            showPage(i);
+            document.getElementById('twitter-section').scrollIntoView({behavior: 'smooth'});
+        };
+        paginationContainer.appendChild(btn);
+      }
+
+      // Next Button
+      const nextBtn = document.createElement('button');
+      nextBtn.innerText = 'Next →';
+      nextBtn.disabled = index === pages.length - 1;
+      nextBtn.onclick = () => {
+          showPage(index + 1);
+          document.getElementById('twitter-section').scrollIntoView({behavior: 'smooth'});
+      };
+      paginationContainer.appendChild(nextBtn);
+    }
+
+    // Initialize
+    showPage(0);
   }
 });
-</script>'''
+</script>
+'''
+
+def classify_link(link):
+    """Return category based on URL domain."""
+    link = link.lower()
+    
+    # Twitter / X
+    if 'twitter.com' in link or 'x.com' in link:
+        return 'twitter'
+    
+    # Tech / Dev
+    tech_domains = [
+        'github.com', 'stackoverflow.com', 'arxiv.org', 'huggingface.co', 
+        'dev.to', 'medium.com', 'hashnode.com', 'kaggle.com', 
+        'news.ycombinator.com', 'python.org', 'docs.google.com', 
+        'youtube.com/playlist', 'youtu.be', 'youtube.com', # Assuming playlists/videos are often tech talks in context
+        'linkedin.com', 'jobs', 'careers' # Grouping jobs with tech/professional
+    ]
+    
+    for domain in tech_domains:
+        if domain in link:
+            return 'tech'
+            
+    # Everything else
+    return 'misc'
 
 def generate_site():
     input_file = './cht_history/_chat180626.txt'
     output_file = 'bookmarks.md'
     
-    # Updated regex: captures Twitter/X and general web links
+    # Matches URLs
     url_pattern = r'https?://\S+'
     
     if not os.path.exists(input_file):
@@ -50,50 +117,91 @@ def generate_site():
     with open(input_file, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Extract all links and remove trailing punctuation often found in WhatsApp exports
+    # Extract all links
     raw_links = re.findall(url_pattern, content)
-    unique_links = list(dict.fromkeys([link.strip(',').strip(')') for link in raw_links]))
+    
+    # Remove trailing punctuation (common in chat exports)
+    clean_links = [link.strip(',').strip(')') for link in raw_links]
+    
+    # Deduplicate while preserving order (using dict)
+    unique_links = list(dict.fromkeys(clean_links))
+    
+    # REVERSE Logic: Newest links are usually at the bottom of chat logs
+    unique_links.reverse()
 
-    # Minimal Jekyll Setup
+    # Categorize
+    twitter_links = []
+    tech_links = []
+    misc_links = []
+
+    for link in unique_links:
+        category = classify_link(link)
+        if category == 'twitter':
+            twitter_links.append(link)
+        elif category == 'tech':
+            tech_links.append(link)
+        else:
+            if "whatsapp.com" not in link: # Filter noise
+                misc_links.append(link)
+
+    # Begin Markdown Construction
     md_content = [
         "---",
         "layout: default",
         "title: Bookmarks",
         "---",
         "",
-        "# Bookmarks",
+        "# Link Vault",
+        "Curated from my personal chat history.",
         "",
         "---",
         "",
-        "## X / Twitter",
-        "",
-        LAZY_LOAD_SCRIPT
+        PAGINATION_SCRIPT
     ]
 
-    twitter_links = []
-    other_links = []
+    # SECTION 1: X / Twitter (Paginated)
+    if twitter_links:
+        md_content.append('<div id="twitter-section">')
+        md_content.append('<h3 class="category-header">X / Twitter Updates</h3>')
+        
+        chunk_size = 20
+        # Split into chunks
+        page_chunks = [twitter_links[i:i + chunk_size] for i in range(0, len(twitter_links), chunk_size)]
+        
+        for i, chunk in enumerate(page_chunks):
+            # Page container
+            active_class = " active" if i == 0 else ""
+            md_content.append(f'<div class="tweet-page{active_class}" id="page-{i}">')
+            for link in chunk:
+                md_content.append(f'<blockquote class="twitter-tweet"><a href="{link}"></a></blockquote>')
+            md_content.append('</div>')
+            
+        md_content.append('<div id="pagination-controls" class="pagination"></div>')
+        md_content.append('</div>')
 
-    for link in unique_links:
-        if 'twitter.com' in link or 'x.com' in link:
-            twitter_links.append(link)
-        else:
-            # Filter out known non-content links like WhatsApp's internal learn more 
-            if "whatsapp.com" not in link:
-                other_links.append(link)
+    # SECTION 2: Tech & Dev
+    if tech_links:
+        md_content.append('<h3 class="category-header">Tech, AI & Engineering</h3>')
+        md_content.append('<ul class="link-list">')
+        for link in tech_links:
+            md_content.append(f'<li><a href="{link}" target="_blank">{link}</a></li>')
+        md_content.append('</ul>')
 
-    # Render Twitter links as embeds
-    for link in twitter_links:
-        md_content.append(f'<blockquote class="twitter-tweet"><a href="{link}"></a></blockquote>')
-
-    md_content.append("\n---\n## Other Links")
-    
-    # Render other links as a clean list
-    for link in other_links:
-        md_content.append(f"* [{link}]({link})")
+    # SECTION 3: Misc
+    if misc_links:
+        md_content.append('<h3 class="category-header">Miscellaneous</h3>')
+        md_content.append('<ul class="link-list">')
+        for link in misc_links:
+            md_content.append(f'<li><a href="{link}" target="_blank">{link}</a></li>')
+        md_content.append('</ul>')
 
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write("\n".join(md_content))
+    
     print(f"Site updated with {len(unique_links)} total links.")
+    print(f"- Twitter: {len(twitter_links)} ({len(page_chunks)} pages)")
+    print(f"- Tech: {len(tech_links)}")
+    print(f"- Misc: {len(misc_links)}")
 
 if __name__ == "__main__":
     generate_site()

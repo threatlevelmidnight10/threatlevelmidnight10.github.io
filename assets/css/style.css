@@ -168,3 +168,92 @@ p {
 blockquote.twitter-tweet {
   margin: 20px auto !important;
 }
+
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 30px;
+  margin-bottom: 50px;
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  color: var(--color-text-light);
+  border-radius: 4px;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.pagination button:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.pagination button.active {
+  background-color: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: #eee;
+  color: #ccc;
+}
+
+/* Link Lists Styles */
+.link-list {
+  list-style: none;
+  padding: 0;
+}
+
+.link-list li {
+  margin-bottom: 12px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.link-list li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #ccc;
+  font-size: 0.9em;
+}
+
+.link-list a {
+  font-weight: 500;
+}
+
+.tweet-page {
+  display: none; /* Hidden by default, JS reveals active page */
+  animation: fadeIn 0.3s ease-in;
+}
+
+.tweet-page.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Filter Headers */
+h3.category-header {
+  font-size: 18px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 60px;
+  border-bottom: none;
+  margin-bottom: 20px;
+}
