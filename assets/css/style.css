@@ -1,0 +1,170 @@
+/* Base Variables */
+:root {
+  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --color-text: #2c2c2c;
+  --color-text-light: #666;
+  --color-accent: #e06e2e; /* Orange link color from screenshot */
+  --color-bg: #ffffff;
+  --max-width: 900px;
+}
+
+/* Reset & Basic Setup */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 20px 40px;
+}
+
+/* Links */
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Header / Navigation */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px 0 50px 0;
+  font-size: 15px;
+}
+
+.nav-icons {
+  display: flex;
+  gap: 15px;
+  font-size: 20px;
+}
+
+.nav-icons a {
+  color: #333;
+  transition: color 0.2s;
+}
+
+.nav-icons a:hover {
+  color: var(--color-accent);
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-links a {
+  color: #555;
+  font-weight: 400;
+}
+
+.nav-links a:hover {
+  color: var(--color-accent);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  color: #111;
+}
+
+h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+h2 {
+  font-size: 24px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+  margin-top: 40px;
+}
+
+p {
+  margin-bottom: 16px;
+}
+
+/* Bio Section (Left Text, Right Image) */
+.bio-container {
+  display: flex;
+  gap: 50px;
+  align-items: flex-start;
+  margin-bottom: 60px;
+}
+
+.bio-text {
+  flex: 2;
+}
+
+.bio-image {
+  flex: 1;
+  max-width: 300px;
+}
+
+.bio-image img {
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.subtitle {
+  font-size: 18px;
+  color: var(--color-text-light);
+  margin-top: -5px;
+  margin-bottom: 25px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .bio-container {
+    flex-direction: column-reverse;
+    gap: 30px;
+  }
+  
+  .bio-image {
+    max-width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  header {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .container {
+    padding: 20px;
+  }
+}
+
+/* Utility */
+.small-text {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.date {
+  font-family: monospace;
+  color: #888;
+}
+
+/* Twitter Widget/Blockquote overrides */
+blockquote.twitter-tweet {
+  margin: 20px auto !important;
+}
