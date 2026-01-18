@@ -1,14 +1,12 @@
 ---
 layout: default
-title: Abhishek K | Senior Engineer
+title: Abhishek K
 ---
 
-# 👋 Hi, I'm Abhishek K
+# Abhishek K
 
-Senior Software Engineer with 6+ years of experience specializing in backend and platform development.
-
-
-### 📁 Projects & Vaults
-* **[View My Twitter & Link Bookmarks](./bookmarks)** * **[GitHub Profile](https://github.com/threatlevelmidnight10)**
+Senior Software Engineer. Backend & Platform.
 
 ---
+
+[Bookmarks](./bookmarks) · [GitHub](https://github.com/threatlevelmidnight10)

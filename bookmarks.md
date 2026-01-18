@@ -1,12 +1,48 @@
 ---
 layout: default
-title: My Personal Link Vault
+title: Bookmarks
 ---
-# 📚 Link Vault
-Generated from WhatsApp exports. [cite: 85, 87]
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
-## 🐦 X / Twitter Posts
+# Bookmarks
+
+---
+
+## X / Twitter
+
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<script>
+// Lazy load Twitter embeds to fix the issue where only first few tweets render
+document.addEventListener('DOMContentLoaded', function() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const tweet = entry.target;
+        if (!tweet.dataset.loaded && window.twttr && window.twttr.widgets) {
+          window.twttr.widgets.load(tweet);
+          tweet.dataset.loaded = 'true';
+        }
+        observer.unobserve(tweet);
+      }
+    });
+  }, { rootMargin: '200px' });
+
+  // Wait for Twitter widgets to be ready
+  function observeTweets() {
+    document.querySelectorAll('blockquote.twitter-tweet').forEach(tweet => {
+      if (!tweet.dataset.loaded) {
+        observer.observe(tweet);
+      }
+    });
+  }
+
+  if (window.twttr && window.twttr.ready) {
+    window.twttr.ready(observeTweets);
+  } else {
+    // Retry after widgets.js loads
+    setTimeout(observeTweets, 2000);
+  }
+});
+</script>
 <blockquote class="twitter-tweet"><a href="https://twitter.com/akashchanran/status/1641799912265515008?t=SJhfmrHkhMxpEM7N0Nm5Xg&s=08"></a></blockquote>
 <blockquote class="twitter-tweet"><a href="https://twitter.com/FitFounder/status/1642150380271280130?t=7I14Kds5QZ0d1M8nwH_r9A&s=08"></a></blockquote>
 <blockquote class="twitter-tweet"><a href="https://twitter.com/jajoosam/status/1690951085022658560?s=08"></a></blockquote>
@@ -688,7 +724,7 @@ Generated from WhatsApp exports. [cite: 85, 87]
 <blockquote class="twitter-tweet"><a href="https://x.com/i/status/2011863537220821134"></a></blockquote>
 
 ---
-## 🔗 Other Bookmarks
+## Other Links
 * [https://www.facebook.com/cnbcawaaz/videos/1891628654224824/](https://www.facebook.com/cnbcawaaz/videos/1891628654224824/)
 * [https://www.facebook.com/cnbcawaaz/videos/1891636124224077/](https://www.facebook.com/cnbcawaaz/videos/1891636124224077/)
 * [https://www.quora.com/Where-does-bewakoof-and-the-souled-store-gets-their-t-shirts-manufactured-Whats-the-actual-cost-Does-it-cost-to-print-them?ch=3&oid=27935977&share=122daee1&srid=aNXN&target_type=question](https://www.quora.com/Where-does-bewakoof-and-the-souled-store-gets-their-t-shirts-manufactured-Whats-the-actual-cost-Does-it-cost-to-print-them?ch=3&oid=27935977&share=122daee1&srid=aNXN&target_type=question)
