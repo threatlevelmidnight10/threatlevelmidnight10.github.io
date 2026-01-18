@@ -3,24 +3,39 @@ import os
 
 # Client-side pagination script for Twitter section + Standard Twitter Widget
 PAGINATION_SCRIPT = '''
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 <script>
+window.twttr = (function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0],
+    t = window.twttr || {};
+  if (d.getElementById(id)) return t;
+  js = d.createElement(s);
+  js.id = id;
+  js.src = "https://platform.twitter.com/widgets.js";
+  fjs.parentNode.insertBefore(js, fjs);
+
+  t._e = [];
+  t.ready = function(f) {
+    t._e.push(f);
+  };
+
+  return t;
+}(document, "script", "twitter-wjs"));
+
 document.addEventListener('DOMContentLoaded', function() {
-  const pageSize = 20;
   const pages = document.querySelectorAll('.tweet-page');
   const paginationContainer = document.getElementById('pagination-controls');
   
-  if (pages.length > 1) {
+  if (pages.length > 0) {
     let currentPage = 0;
     
     function showPage(index) {
       pages.forEach((page, i) => {
         if (i === index) {
           page.classList.add('active');
-          // Trigger Twitter widget load for the new visible elements
-          if (window.twttr && window.twttr.widgets) {
-             window.twttr.widgets.load(page);
-          }
+          // Important: Trigger render on the active page
+          twttr.ready(function() {
+             twttr.widgets.load(page);
+          });
         } else {
           page.classList.remove('active');
         }
@@ -42,13 +57,10 @@ document.addEventListener('DOMContentLoaded', function() {
       };
       paginationContainer.appendChild(prevBtn);
 
-      // Page Numbers (Show window of 5 around current)
+      // Page Numbers (Window of 5)
       let start = Math.max(0, index - 2);
       let end = Math.min(pages.length - 1, start + 4);
-      
-      if (end - start < 4) {
-        start = Math.max(0, end - 4);
-      }
+      if (end - start < 4) start = Math.max(0, end - 4);
 
       for (let i = start; i <= end; i++) {
         const btn = document.createElement('button');
@@ -72,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
       paginationContainer.appendChild(nextBtn);
     }
 
-    // Initialize
+    // Initial Load
     showPage(0);
   }
 });
