@@ -9,7 +9,7 @@ title: Abhishek Kulkarni
     <p class="subtitle">Senior Software Engineer</p>
 
     <p>
-      Hi 👋! I am a Senior Software Engineer with 6+ years of experience specializing in backend and platform development.
+      Hi 👋! I am a Senior Software Engineer with 6+ years of experience specializing in backend and platform development. Currently working on Managed Hosting Platform (Cloudways) at DigitalOcean.
     </p>
 
     <p>
@@ -43,12 +43,8 @@ title: Abhishek Kulkarni
 *   **[Elastic.run](https://www.elastic.run/)** (July 2019 - Sept 2021)
     *   Software Engineer (FMCG Distribution Platform)
 
-## News
+## Updates
 
-*   **Jan 2026**: Redesigned my personal website.
-*   **Dec 2025**: Added new bookmarks to the vault.
-
-## Projects
-
-*   [Project Name](https://github.com/threatlevelmidnight10): Description of the project.
-*   [Another Project](https://github.com/threatlevelmidnight10): Short description.
+*   **Jan 2026**: Redesigned my personal website, added a workflow to keep my bookmarks vault updated as i keep saving tweets and links to my whatsapp group. (Wanted this to be a place where i can keep all my bookmarks and tweets in one place)
+*   **Jan 2026**: Revisting Go - built a proxy with pluggable lb strategy, will be adding more features to it (WIP)
+*   **Dec 2025**: Got my fundamentals ready to understand and build LLM inference engine from scratch. (:fingers crossed)
